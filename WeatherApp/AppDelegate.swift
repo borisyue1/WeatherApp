@@ -7,16 +7,30 @@
 //
 
 import UIKit
+import CoreLocation
 import Alamofire
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
 
     var window: UIWindow?
-//e56988338de8a3b73446d52d27afc322
+    fileprivate let locationManager = CLLocationManager()
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplicationLaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
+        locationManager.delegate = self
+        locationManager.requestWhenInUseAuthorization()
+        locationManager.requestAlwaysAuthorization()
+        locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
+        locationManager.startUpdatingLocation()
+        let latitude = locationManager.location!.coordinate.latitude
+        let longitude = locationManager.location!.coordinate.longitude
+        Alamofire.request("https://api.darksky.net/forecast/e56988338de8a3b73446d52d27afc322/\(latitude),\(longitude)").responseJSON {
+            response in
+            if let data = response.result.value {
+                print("JSON: \(data)")
+            }
+        }
         return true
     }
 
@@ -42,6 +56,9 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
     }
 
+}
 
+extension AppDelegate: CLLocationManagerDelegate {
+    
 }
 
