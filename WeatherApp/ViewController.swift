@@ -54,7 +54,15 @@ class ViewController: UIViewController {
         if icon != "rain" {
             rainLabel.text = "It will not rain within the hour."
         } else {
-            rainLabel.text = "Raining!!"
+            var minutes = 0
+            for minuteInfo in (fromData["data"] as! [AnyObject]) { //need to convert to [AnyObject] to iterate
+                let rainProbability = minuteInfo["precipProbability"] as! Int
+                if rainProbability > 0 {
+                    rainLabel.text = "There is a \(rainProbability * 100)% change that it will rain in \(minutes) minutes."
+                    break
+                }
+                minutes += 1
+            }
         }
         rainLabel.sizeToFit()
         rainLabel.frame.origin.x = view.frame.width / 2 - rainLabel.frame.width / 2
