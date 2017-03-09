@@ -18,8 +18,18 @@ class ViewController: UIViewController {
     
     func displayData(notification: Notification) {
         if let data = notification.userInfo as! [String: AnyObject]? {
-            print(data)
+            if let currentData = data["currently"] {
+                displayTemperature(fromData: currentData)
+            }
         }
+    }
+    
+    func displayTemperature(fromData: AnyObject) {
+        let temperature = fromData["temperature"] as! Double
+        let roundedTemp = Int(round(temperature))
+        let label = UILabel(frame: CGRect(x: view.frame.width / 2 - 50, y: view.frame.height / 3, width: 100, height: 50))
+        label.text = "\(roundedTemp) degrees"
+        view.addSubview(label)
     }
 
 }
