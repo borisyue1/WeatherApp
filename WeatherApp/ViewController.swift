@@ -12,6 +12,7 @@ class ViewController: UIViewController {
 
     var temperatureLabel: UILabel!
     var summaryLabel: UILabel!
+    var rainLabel: UILabel!
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -48,7 +49,16 @@ class ViewController: UIViewController {
     }
     
     func displayRainInfo(fromData: AnyObject) {
-        
+        rainLabel = UILabel(frame: CGRect(x: 0, y: summaryLabel.frame.maxY + 10, width: 50, height: 30))
+        let icon = fromData["icon"] as! String
+        if icon != "rain" {
+            rainLabel.text = "It will not rain within the hour."
+        } else {
+            rainLabel.text = "Raining!!"
+        }
+        rainLabel.sizeToFit()
+        rainLabel.frame.origin.x = view.frame.width / 2 - rainLabel.frame.width / 2
+        view.addSubview(rainLabel)
     }
 
 }
