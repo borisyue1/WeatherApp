@@ -26,7 +26,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
         let latitude = locationManager.location!.coordinate.latitude
         let longitude = locationManager.location!.coordinate.longitude
-        Alamofire.request("https://api.darksky.net/forecast/e56988338de8a3b73446d52d27afc322/\(latitude),\(longitude)?exclude=daily,alerts,flags").responseJSON {
+        Alamofire.request("https://api.darksky.net/forecast/e56988338de8a3b73446d52d27afc322/\(latitude),\(longitude)?exclude=hourly,daily,alerts,flags").responseJSON {
             response in
             if let data = response.result.value {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: notificationKey), object: self, userInfo: data as? [AnyHashable: Any])
