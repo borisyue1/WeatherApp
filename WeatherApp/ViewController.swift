@@ -10,12 +10,16 @@ import UIKit
 
 class ViewController: UIViewController {
 
+    var apparentTemperatureLabel: UILabel!
     var temperatureLabel: UILabel!
     var summaryLabel: UILabel!
     var rainLabel: UILabel!
     var circleBlurView: UIView!
+    var highLowTemp: UILabel!
+    var humidityLabel: UILabel!
+    var windSpeed: UILabel!
     
-    var rainGif = [#imageLiteral(resourceName: "rain-1"), #imageLiteral(resourceName: "rain-2"), #imageLiteral(resourceName: "rain-3"), #imageLiteral(resourceName: "rain-4"), #imageLiteral(resourceName: "rain-5")]
+    var rainGif = [#imageLiteral(resourceName: "rain1"),#imageLiteral(resourceName: "rain2"), #imageLiteral(resourceName: "rain3"), #imageLiteral(resourceName: "rain4"), #imageLiteral(resourceName: "rain5")]
     var sunGif = [#imageLiteral(resourceName: "sunny-1"), #imageLiteral(resourceName: "sunny-2"), #imageLiteral(resourceName: "sunny-3"), #imageLiteral(resourceName: "sunny-4"), #imageLiteral(resourceName: "sunny-5")]
     var nightGif = [#imageLiteral(resourceName: "night-1"), #imageLiteral(resourceName: "night-2"), #imageLiteral(resourceName: "night-3"), #imageLiteral(resourceName: "night-4"), #imageLiteral(resourceName: "night-5"), #imageLiteral(resourceName: "night-6"), #imageLiteral(resourceName: "night-7"), #imageLiteral(resourceName: "night-8"), #imageLiteral(resourceName: "night-9"), #imageLiteral(resourceName: "night-10")]
     
@@ -34,6 +38,9 @@ class ViewController: UIViewController {
                 displaySummary(fromData: minuteData)
                 displayRainInfo(fromData: minuteData)
             }
+            if let otherData = data["daily"] {
+                displayOtherWeatherInfo(fromData: otherData)
+            }
         }
     }
     
@@ -47,9 +54,19 @@ class ViewController: UIViewController {
     }
     
     func displayTemperature(fromData: AnyObject) {
+        let feelsLike = fromData["apparentTemperature"] as! Double
+        let roundedFeelsLike = Int(round(feelsLike))
+        apparentTemperatureLabel = UILabel(frame: CGRect(x: 0, y: view.frame.height / 5.1, width: 100, height: 30))
+        apparentTemperatureLabel.text = "Feels like: \(roundedFeelsLike)\u{00B0}"
+        apparentTemperatureLabel.font = UIFont.boldSystemFont(ofSize: 14)
+        apparentTemperatureLabel.sizeToFit()
+        apparentTemperatureLabel.frame.origin.x = view.frame.width / 2 - apparentTemperatureLabel.frame.width / 2
+        apparentTemperatureLabel.textColor = UIColor.white
+        view.addSubview(apparentTemperatureLabel)
+        
         let temperature = fromData["temperature"] as! Double
         let roundedTemp = Int(round(temperature))
-        temperatureLabel = UILabel(frame: CGRect(x: 0, y: view.frame.height / 4.75, width: 100, height: 30))
+        temperatureLabel = UILabel(frame: CGRect(x: 0, y: apparentTemperatureLabel.frame.maxY, width: 100, height: 30))
         temperatureLabel.text = "\(roundedTemp)\u{00B0}"
         temperatureLabel.font = UIFont.systemFont(ofSize: 70)
         temperatureLabel.sizeToFit()
@@ -73,15 +90,17 @@ class ViewController: UIViewController {
         let date = NSDate()
         let calendar = NSCalendar.current
         let hour = calendar.component(.hour, from: date as Date) //getting hour to determine which gif to show
-        rainLabel = UILabel(frame: CGRect(x: 0, y: circleBlurView.frame.maxY + 15, width: 50, height: 30))
+        rainLabel = UILabel(frame: CGRect(x: 0, y: circleBlurView.frame.maxY + 25, width: 50, height: 30))
         let icon = fromData["icon"] as! String
-        if icon != "rain" && (hour > 19 || hour < 4) { //this means its night
+        if icon != "rain" {
+            if hour > 19 || hour < 4 { //this means its night
+                displayNightGif()
+            } else { //means its during the day
+                displaySunGif()
+            }
             rainLabel.text = "Chance of Rain: 0%"
-            displayNightGif()
-        } else if icon != "rain" { //means its during the day
-            rainLabel.text = "Chance of Rain: 0%"
-            displaySunGif()
         } else {
+            circleBlurView.backgroundColor = UIColor(red: 230/255, green: 172/255, blue: 0, alpha: 0.4)
             displayRainGif()
             var minutes = 0
             for minuteInfo in (fromData["data"] as! [AnyObject]) { //need to convert to [AnyObject] to iterate
@@ -93,11 +112,43 @@ class ViewController: UIViewController {
                 minutes += 1
             }
         }
-        rainLabel.font = UIFont.systemFont(ofSize: 15)
+        rainLabel.font = UIFont.systemFont(ofSize: 17)
         rainLabel.sizeToFit()
         rainLabel.frame.origin.x = view.frame.width / 2 - rainLabel.frame.width / 2
         rainLabel.textColor = UIColor.white
         view.addSubview(rainLabel)
+    }
+    
+    func displayOtherWeatherInfo(fromData: AnyObject) {
+        let tempData = (fromData["data"] as! [AnyObject])[0]
+        
+        let tempMax = Int(round(tempData["temperatureMax"] as! Double))
+        let tempMin = Int(round(tempData["temperatureMin"] as! Double))
+        highLowTemp = UILabel(frame: CGRect(x: 0, y: rainLabel.frame.maxY + 15, width: 50, height: 50))
+        highLowTemp.text = "High/Low: \(tempMax)\u{00B0}/\(tempMin)\u{00B0}"
+        highLowTemp.font = UIFont.systemFont(ofSize: 17)
+        highLowTemp.sizeToFit()
+        highLowTemp.frame.origin.x = view.frame.width / 2 - highLowTemp.frame.width / 2
+        highLowTemp.textColor = UIColor.white
+        view.addSubview(highLowTemp)
+        
+        let humidity = Int((tempData["humidity"] as! Double) * 100)
+        humidityLabel = UILabel(frame: CGRect(x: 0, y: highLowTemp.frame.maxY + 15, width: 50, height: 50))
+        humidityLabel.text = "Humidity: \(humidity)%"
+        humidityLabel.font = UIFont.systemFont(ofSize: 17)
+        humidityLabel.sizeToFit()
+        humidityLabel.frame.origin.x = view.frame.width / 2 - humidityLabel.frame.width / 2
+        humidityLabel.textColor = UIColor.white
+        view.addSubview(humidityLabel)
+        
+        let wind = tempData["windSpeed"] as! Double
+        windSpeed = UILabel(frame: CGRect(x: 0, y: humidityLabel.frame.maxY + 15, width: 50, height: 50))
+        windSpeed.text = "Wind Speed: \(wind) mph"
+        windSpeed.font = UIFont.systemFont(ofSize: 17)
+        windSpeed.sizeToFit()
+        windSpeed.frame.origin.x = view.frame.width / 2 - windSpeed.frame.width / 2
+        windSpeed.textColor = UIColor.white
+        view.addSubview(windSpeed)
     }
     
     func displaySunGif() {
