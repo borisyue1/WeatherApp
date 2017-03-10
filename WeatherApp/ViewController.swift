@@ -17,6 +17,7 @@ class ViewController: UIViewController {
     
     var rainGif = [#imageLiteral(resourceName: "rain-1"), #imageLiteral(resourceName: "rain-2"), #imageLiteral(resourceName: "rain-3"), #imageLiteral(resourceName: "rain-4"), #imageLiteral(resourceName: "rain-5")]
     var sunGif = [#imageLiteral(resourceName: "sunny-1"), #imageLiteral(resourceName: "sunny-2"), #imageLiteral(resourceName: "sunny-3"), #imageLiteral(resourceName: "sunny-4"), #imageLiteral(resourceName: "sunny-5")]
+    var nightGif = [#imageLiteral(resourceName: "night-1"), #imageLiteral(resourceName: "night-2"), #imageLiteral(resourceName: "night-3"), #imageLiteral(resourceName: "night-4"), #imageLiteral(resourceName: "night-5"), #imageLiteral(resourceName: "night-6"), #imageLiteral(resourceName: "night-7"), #imageLiteral(resourceName: "night-8"), #imageLiteral(resourceName: "night-9"), #imageLiteral(resourceName: "night-10")]
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -50,7 +51,7 @@ class ViewController: UIViewController {
         let roundedTemp = Int(round(temperature))
         temperatureLabel = UILabel(frame: CGRect(x: 0, y: view.frame.height / 4.75, width: 100, height: 30))
         temperatureLabel.text = "\(roundedTemp)\u{00B0}"
-        temperatureLabel.font = UIFont.systemFont(ofSize: 65)
+        temperatureLabel.font = UIFont.systemFont(ofSize: 70)
         temperatureLabel.sizeToFit()
         temperatureLabel.frame.origin.x = view.frame.width / 2 - temperatureLabel.frame.width / 2 + 5
         temperatureLabel.textColor = UIColor.white
@@ -61,7 +62,7 @@ class ViewController: UIViewController {
         let summary = fromData["summary"] as! String
         summaryLabel = UILabel(frame: CGRect(x: 0, y: temperatureLabel.frame.maxY + 5, width: 50, height: 30))
         summaryLabel.text = summary
-        summaryLabel.font = UIFont.systemFont(ofSize: 15)
+        summaryLabel.font = UIFont.boldSystemFont(ofSize: 14)
         summaryLabel.sizeToFit()
         summaryLabel.frame.origin.x = view.frame.width / 2 - summaryLabel.frame.width / 2
         summaryLabel.textColor = UIColor.white
@@ -69,9 +70,16 @@ class ViewController: UIViewController {
     }
     
     func displayRainInfo(fromData: AnyObject) {
-        rainLabel = UILabel(frame: CGRect(x: 0, y: summaryLabel.frame.maxY + 10, width: 50, height: 30))
+        let date = NSDate()
+        let calendar = NSCalendar.current
+        let hour = calendar.component(.hour, from: date as Date) //getting hour to determine which gif to show
+        rainLabel = UILabel(frame: CGRect(x: 0, y: circleBlurView.frame.maxY + 15, width: 50, height: 30))
         let icon = fromData["icon"] as! String
-        if icon != "rain" {
+        if icon != "rain" && (hour > 19 || hour < 4) { //this means its night
+            rainLabel.text = "Chance of Rain: 0%"
+            displayNightGif()
+        } else if icon != "rain" { //means its during the day
+            rainLabel.text = "Chance of Rain: 0%"
             displaySunGif()
         } else {
             displayRainGif()
@@ -79,12 +87,13 @@ class ViewController: UIViewController {
             for minuteInfo in (fromData["data"] as! [AnyObject]) { //need to convert to [AnyObject] to iterate
                 let rainProbability = minuteInfo["precipProbability"] as! Int
                 if rainProbability > 0 {
-                    rainLabel.text = "There is a \(rainProbability * 100)% change that it will rain in \(minutes) minutes."
+                    rainLabel.text = "Chance of Rain: \(rainProbability * 100)% in \(minutes) minutes."
                     break
                 }
                 minutes += 1
             }
         }
+        rainLabel.font = UIFont.systemFont(ofSize: 15)
         rainLabel.sizeToFit()
         rainLabel.frame.origin.x = view.frame.width / 2 - rainLabel.frame.width / 2
         rainLabel.textColor = UIColor.white
@@ -107,6 +116,15 @@ class ViewController: UIViewController {
         rainView.layer.zPosition = -5
         rainView.startAnimating()
         view.addSubview(rainView)
+    }
+    
+    func displayNightGif() {
+        let nightView = UIImageView(frame: CGRect(x: 0, y: 0, width: view.frame.width, height: view.frame.height))
+        nightView.animationImages = nightGif
+        nightView.animationDuration = 1
+        nightView.layer.zPosition = -5
+        nightView.startAnimating()
+        view.addSubview(nightView)
     }
 
 }
