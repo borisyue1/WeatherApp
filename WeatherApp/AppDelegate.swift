@@ -22,17 +22,25 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         // Override point for customization after application launch.
         locationManager.delegate = self
         locationManager.requestWhenInUseAuthorization()
-        locationManager.requestAlwaysAuthorization()
         locationManager.desiredAccuracy = kCLLocationAccuracyNearestTenMeters
-        let latitude = locationManager.location!.coordinate.latitude
-        let longitude = locationManager.location!.coordinate.longitude
+        locationManager.requestLocation()
+        return true
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didUpdateLocations locations: [CLLocation]) {
+        let latitude = locations.first!.coordinate.latitude
+        let longitude = locations.first!.coordinate.longitude
         Alamofire.request("https://api.darksky.net/forecast/e56988338de8a3b73446d52d27afc322/\(latitude),\(longitude)?exclude=hourly,alerts,flags").responseJSON {
             response in
             if let data = response.result.value {
                 NotificationCenter.default.post(name: NSNotification.Name(rawValue: notificationKey), object: self, userInfo: data as? [AnyHashable: Any])
             }
         }
-        return true
+        
+    }
+    
+    func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
+        print("Failed to find user's location: \(error.localizedDescription)")
     }
 
     func applicationWillResignActive(_ application: UIApplication) {
