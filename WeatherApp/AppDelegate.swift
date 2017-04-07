@@ -11,6 +11,8 @@ import CoreLocation
 import Alamofire
 
 let notificationKey = "com.borisyue.WeatherApp"
+let notificationKey2 = "com.borisyue.WeatherApp2"
+
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -33,7 +35,18 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         Alamofire.request("https://api.darksky.net/forecast/e56988338de8a3b73446d52d27afc322/\(latitude),\(longitude)?exclude=hourly,alerts,flags").responseJSON {
             response in
             if let data = response.result.value {
-                NotificationCenter.default.post(name: NSNotification.Name(rawValue: notificationKey), object: self, userInfo: data as? [AnyHashable: Any])
+                let geoCoder = CLGeocoder() //get city
+                geoCoder.reverseGeocodeLocation(locations.first!) { (placemarks, error) -> Void in
+                    if error != nil {
+                        print("Error getting location: \(error)")
+                    } else {
+                        let placeArray = placemarks as [CLPlacemark]!
+                        var placeMark: CLPlacemark!
+                        placeMark = placeArray?[0]
+                        ViewController.city = placeMark.addressDictionary?["City"]! as! String!
+                        NotificationCenter.default.post(name: NSNotification.Name(rawValue: notificationKey), object: self, userInfo: data as? [AnyHashable: Any])
+                    }
+                }
             }
         }
         
